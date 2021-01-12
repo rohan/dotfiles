@@ -1,146 +1,393 @@
-set nocompatible
-filetype off
+scriptencoding utf-8
 
-" Vundle
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
+" Load vim-plug
+if empty(glob("~/.vim/autoload/plug.vim"))
+    execute '!curl -fLo ~/.vim/autoload/plug.vim https://raw.github.com/junegunn/vim-plug/master/plug.vim'
+endif
 
-" Bundles
-Bundle 'gmarik/Vundle.vim'
-Bundle 'Lokaltog/vim-easymotion'
-Bundle 'kien/ctrlp.vim'                
-Bundle 'L9'
-Bundle 'FuzzyFinder'
-Bundle 'mattn/emmet-vim'                
-Bundle 'Lokaltog/vim-powerline'
-Bundle 'scrooloose/syntastic'
-Bundle 'terryma/vim-multiple-cursors' 
-Bundle 'Blackrush/vim-gocode'
-Bundle 'LaTeX-Box-Team/LaTeX-Box'
-Bundle 'greyblake/vim-preview'
-Bundle 'shime/vim-livedown'
-Bundle 'tpope/vim-fugitive'
-Plugin 'derekwyatt/vim-scala'
-Plugin 'flazz/vim-colorschemes'
-call vundle#end()
+" Load plug plugins
+call plug#begin('~/.vim/plugged')
 
-" Enable plugins
-filetype plugin indent on
+" statusbar
+Plug 'itchyny/lightline.vim'
 
-" Configure EasyMotion
-" Use \w to jump to word
-" Use \t to search character
-let g:EasyMotion_leader_key = '<Leader>'
+" open in GitHub (with :OpenGithub / :CopyGithub)
+Plug 'k0kubun/vim-open-github'
 
-" Disable asking about ycm_extra_conf files
-let g:ycm_confirm_extra_conf = 0
+" scratch (:Scratch or gs)
+Plug 'mtth/scratch.vim'
 
-" Incrementally display search results
-set incsearch
+" Asynchronous syntax checking
+Plug 'w0rp/ale'
 
-" Autodetect certain filetypes
-au BufNewFile,BufRead *.md set filetype=markdown
-au BufNewFile,Bufread *.ys set filetype=asm
-au BufRead,BufNewFile *.txt setlocal textwidth=80
-au BufNewFile,BufRead *.bit setlocal filetype=php
+" Editorconfig support
+Plug 'editorconfig/editorconfig-vim'
 
-" Syntax highlighting
+" Salt file syntax support
+Plug 'saltstack/salt-vim'
+
+" Comment a line with gcc (and other stuff)
+Plug 'tpope/vim-commentary'
+
+" Allow . to repeat for certain plugins
+Plug 'tpope/vim-repeat'
+
+" Git commands (:Gblame, :Gbrowse)
+Plug 'tpope/vim-fugitive'
+
+" Homebrew fzf
+Plug '/usr/local/opt/fzf'
+
+" Enable fzf support
+Plug 'junegunn/fzf.vim'
+
+" Git status in gutter
+Plug 'airblade/vim-gitgutter'
+
+" Get the git branch
+Plug 'itchyny/vim-gitbranch'
+
+" Test runner
+Plug 'janko/vim-test'
+
+" Fish
+Plug 'dag/vim-fish'
+
+" CSV
+Plug 'chrisbra/csv.vim'
+
+" kotlin
+Plug 'udalov/kotlin-vim'
+
+" dispatch
+Plug 'tpope/vim-dispatch'
+
+" rust
+Plug 'rust-lang/rust.vim'
+
+" protobufs
+Plug 'uarun/vim-protobuf'
+
+call plug#end()
+
+colorscheme molokai
+
+" Set 24-bit colors
+if (has('termguicolors'))
+  set termguicolors
+endif
+
+" Turn on syntax highlighting
 syntax on
 
-" Set terminal colors
-set t_Co=256
-set t_ut=
+if !empty(glob('~/.vim/plugged/lightline.vim'))
+  " Lightline config
+  set laststatus=2
+  let g:lightline = {
+      \ 'colorscheme': 'one',
+      \ 'active': {
+      \   'left': [
+      \     ['mode', 'paste'],
+      \     ['filename', 'gitbranch', 'readonly', 'gutentags'],
+      \   ],
+      \   'right': [['filetype'], ['lineinfo', 'percent']],
+      \ },
+      \ 'inactive': {
+      \   'left': [['filename']],
+      \   'right': [[], ['lineinfo', 'percent']]
+      \ },
+      \ 'component_function': {
+      \   'percent': 'LightLinePercentInfo',
+      \   'lineinfo': 'LightLineLineInfo',
+      \   'gitbranch': 'LightLineGitBranch',
+      \   'filename': 'LightLineFilename',
+      \ }
+      \ }
 
-" Make Vim use the X11 clipboard register
-"set clipboard=unnamedplus
+  " The following two functions are here because lightline
+  " by default has static widths for the percentage and lineinfo
+  " components. This makes them dynamic
+  function! LightLinePercentInfo()
+    return line('.') * 100 / line('$') . '%'
+  endfunction
 
-" Open new splits to right and bottom
-set splitbelow
-set splitright
+  function! LightLineLineInfo()
+    return 'L' . line('.') . ' C' . col('.')
+  endfunction
 
-" Configure indenting
-set autoindent
-set cindent
+  " Lightline git branch
+  function! LightLineGitBranch()
+    return gitbranch#name()
+  endfunction
 
-" Configure folding
-set foldmethod=indent
-set foldnestmax=10
-set nofoldenable
-set foldlevel=1
+  " Lightline filename function
+  function! LightLineFilename()
+    let name = ''
+    let fullpath = expand('%:p')
+    if fullpath =~ '\[defx\]'
+      return ''
+    endif
+    if &filetype ==# 'help'
+      return ''
+    elseif &filetype ==# 'gitcommit'
+      return ''
+    endif
+    let prefix = fullpath =~ '^' . $HOME ? '~/' : '/'
+    let withouthome = substitute(fullpath, $HOME, '', '')
+    let subs = split(withouthome, '/')
+    let cwd = split(getcwd(), '/')[-1]
+    let i = 1
+    if len(subs) == 1
+      return prefix . subs[0]
+    endif
+    for s in subs
+      let parent = name
+      if i == len(subs)
+        " Filename
+        let name = parent . '/' . s
+      elseif i == 1 && getcwd() !=# $HOME && prefix !=# '/'
+        " The first subdirectory. We don't want to add the slash here
+        " since we'll prefix it later
+        let name = strpart(s, 0, 1)
+      elseif i == 1
+        " The first sub directory is directly underneath the home or root
+        " directory. This is used to show ~/.config/n/init.vim instead of
+        " ~/./n/init.vim
+        let name = s
+      elseif s ==# cwd
+        " Show the full name of the current working directory
+        let name = parent . '/' . s
+      else
+        " Show only the first character of any normal directory
+        let name = parent . '/' . strpart(s, 0, 1)
+      endif
+      let i += 1
+    endfor
+    let modified = &modified ? ' +' : ''
+    return prefix . name . modified
+  endfunction
+endif
 
-" Configure automatic text width (only if textwidth is set)
-set fo+=t
-set textwidth=80
+" Since we're using lightline, don't show "-- INSERT --", etc. at the bottom
+set noshowmode
 
-" Configure tabs
+" Automatically change the directory to the current file
+" set autochdir
+
+" Set path
+set path+=*
+
+" change the leader key from "\" to ","
+let mapleader=','
+
+" Shortcut to edit THIS configuration file: (e)dit (c)onfiguration
+nnoremap <silent> <Leader>ec :e $MYVIMRC<CR>
+
+" Shortcut to source (reload) THIS configuration file after editing it: (s)ource (c)onfiguraiton
+nnoremap <silent> <Leader>sc :source $MYVIMRC<CR>:echo "Sourced $MYVIMRC"<CR>
+
+" spaces/tabs setup
 set tabstop=2
 set shiftwidth=2
-set softtabstop=2
 set expandtab
+set smarttab
+augroup file_tabs_and_spaces
+  autocmd!
+  autocmd filetype python setlocal shiftwidth=4 tabstop=4
+  autocmd filetype gitconfig setlocal shiftwidth=8 tabstop=8 noexpandtab
+  autocmd filetype fish setlocal shiftwidth=4 tabstop=4
+augroup end
 
-" autocmd FileType java setlocal shiftwidth=4 tabstop=4
+" disable line numbers fzf
+augroup disable_lines_fzf
+  autocmd! filetype fzf
+  autocmd filetype fzf set laststatus=0 noshowmode noruler nonumber
+      \ norelativenumber | autocmd bufleave <buffer> set laststatus=2 showmode
+      \ ruler number relativenumber
+augroup end
 
-" Extra command maps
-cmap w!! w !sudo tee > /dev/null %
+" Highlight characters over the length limit
+let g:skip_highlight_long_lines = ['defx', 'vim-plug']
+function! UpdateMatch()
+  match NONE
+  if index(g:skip_highlight_long_lines, &filetype) >= 0
+    return
+  elseif &filetype ==# 'python'
+    match Error /\%>120v.*\%<122v/
+  else
+    match Error /\%>80v.*\%<82v/
+  end
+endfunction
+augroup highlight_long_lines
+  autocmd!
+  autocmd VimEnter,WinEnter * call UpdateMatch()
+augroup END
 
-" Configure Syntastic
-let g:syntastic_c_checkers=['gcc']
-let g:syntastic_python_python_exec='/usr/local/bin/python3'
-let g:ycm_path_to_python_interpreter = '/usr/local/bin/python3'
+" set a specific character for indent guides
+let g:indentline_char = '│'
 
-" Configure Ctrl+P to look for either git root or use current directory
-let g:ctrlp_working_path_mode = 'c'
-" use ra if you want to look for git root
-" use c if you only want directory of file
+" don't use backup files
+set nobackup
+set nowritebackup
 
-" Enable syntax highlighting, numberings, and mouse selection
-syntax enable
+" don't give |ins-completion-menu| messages. (see :help shortmess)
+set shortmess+=c
+
+" always display the "signcolumn"
+set signcolumn=yes
+
+" turn on git-gutter by default
+let g:gitgutter_enabled = 1
+
+" How often to update git-gutter (and other stuff)
+set updatetime=200
+
+if !empty(glob('~/.vim/plugged/fzf.vim'))
+  " Search for files
+  command! -bang -nargs=? -complete=dir Files call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
+  nnoremap <silent> <Leader>f :Files<CR>
+
+  " Customize fzf colors to match your color scheme
+  let g:fzf_colors =
+  \ { 'fg':      ['fg', 'Normal'],
+    \ 'bg':      ['bg', 'Normal'],
+    \ 'hl':      ['fg', 'Comment'],
+    \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+    \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+    \ 'hl+':     ['fg', 'Statement'],
+    \ 'info':    ['fg', 'PreProc'],
+    \ 'border':  ['fg', 'Ignore'],
+    \ 'prompt':  ['fg', 'Conditional'],
+    \ 'pointer': ['fg', 'Exception'],
+    \ 'marker':  ['fg', 'Keyword'],
+    \ 'spinner': ['fg', 'Label'],
+    \ 'header':  ['fg', 'Comment'] }
+
+  " Customize fzf actions
+  let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-x': 'split',
+  \ 'enter': 'vsplit' }
+endif
+
+" Better searching in vim
+set ignorecase
+set smartcase
+
+" Highlight the current line
+set cursorline
+
+" Show line numbers
 set number
+
+" Disable automatic comment insertion
+augroup filetype_formatoptions
+  autocmd!
+  autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
+augroup end
+
+" Incremental search
+set incsearch
+
+" Spawn horizontal splits below instead of above
+set splitbelow
+
+" Spawn vertical splits to the right instead of left
+set splitright
+
+" Hide the end of line buffer characters (~) by making them the same
+" color as the background
+highlight EndOfBuffer guifg=bg
+
+if !empty(glob('~/.vim/plugged/vim-projectionist'))
+  " Projectionist shortcuts
+  " Alternate file
+  nnoremap <Leader>a :A<CR>
+end
+
+" Ignore pyc files in netrw
+let g:netrw_list_hide= '.*\.swp$,.*\.pyc'
+
+" Have Y yank from cursor to end of the line (like C[hange] and D[elete])
+nnoremap Y y$
+
+" Automatically autocomplete the first word from the completions
+set completeopt+=noinsert
+
+" Indent wrapped lines at the same level as the current line
+set breakindent
+
+" Only redraw when necessary
+set lazyredraw
+
+" Reload files when they're changed on disk
+set autoread
+
+" Set a buffer
+set scrolloff=1
+
+" Use good mouse behavior
 set mouse=a
 
-" Set backgorund and theme
-" https://github.com/tomasr/molokai
-set background=dark
-colorscheme Molokai
+" Move lines up and down
+nnoremap - ddp
+nnoremap _ ddkP
 
-" Configure the status bar (requires patched font)
-" https://github.com/scotu/ubuntu-mono-powerline
-set laststatus=2
-" let g:Powerline_symbols = 'fancy'
+" Show trailing whitespaces
+set list
 
-" Custom commands
+" Trailing whitespace characters
+set listchars=tab:»·,trail:·
 
-" Set text wrapping to 80 characters and wrap
-" Wrap with gq
-function! SetWrap(wrapColumns)
-  set tw=80
-  set formatoptions+=t
+" Automatically fix trailing whitespaces
+function! FixWhitespace(line1,line2)
+  let l:save_cursor = getpos('.')
+  silent! execute ':' . a:line1 . ',' . a:line2 . 's/\s\+$//'
+  call setpos('.', l:save_cursor)
+endfunction
+command! -range=% FixWhitespace call FixWhitespace(<line1>,<line2>)
+augroup fix_whitespace
+  autocmd!
+  autocmd BufWritePre * execute "FixWhitespace"
+augroup END
+
+" VimScript continuation indent 2 tab widths
+" https://google.github.io/styleguide/vimscriptguide.xml?showone=Whitespace#Whitespace
+let g:vim_indent_cont = &shiftwidth * 2
+
+" Testing config
+if !empty(glob('~/.vim/plugged/vim-test'))
+  let test#strategy = "vimterminal"
+  let test#python#runner = 'nose'
+  let test#python#nose#options = "--nologcapture --verbose"
+endif
+
+if !empty(glob('~/.vim/plugged/ale'))
+  let g:ale_python_black_executable = 'black'
+  let g:ale_completion_enabled = 1
+  let g:ale_linters = {
+      \ 'python': ['flake8', 'pyls'],
+      \ 'javascript': [],
+      \}
+  let g:ale_fixers = {
+      \ 'python': ['black', 'autopep8'],
+      \ 'javascript': [],
+      \}
+endif
+
+" Quickly echo the full file path
+nnoremap <leader>% :let @*=expand("%:p")<CR>:echo expand('%:p')<CR>
+nnoremap <leader>5 :let @*=expand("%:p")<CR>:echo expand('%:p')<CR>
+
+
+if !empty(glob('~/.vim/plugged/vim-dispatch'))
+  let g:dispatch_compilers = {}
+  let g:dispatch_compilers['nosetests --doctest-tests --nologcapture --verbose'] = 'pyunit'
+endif
+
+function s:Psql(svc)
+  silent execute "!psql_query " . a:svc . " " . expand('%:p')
+  redraw!
 endfunction
 
-" Trim unwanted whitespace
-command TrimWhitespace execute ':%s/\s\+$//gc'
-
-" Toggle spell checking
-" z= to show spelling suggestions
-map <F3> :setlocal spell! spelllang=en_us<CR>
-
-" Toggle paste mode
-map <F4> :setlocal paste!<CR>
-
-" Fast c/cpp to h/hpp switching
-map <F5> :e %:p:s,.h$,.X123X,:s,.cc$,.h,:s,.X123X$,.cpp,<CR>
-
-command Latex execute "silent !pdflatex % > /dev/null && open %:r.pdf > /dev/null 2>&1 &" | redraw!
-map <F2> :w<CR> :Latex<CR>
-
-" Live preview of markdown files
-map gm :call LivedownPreview()<CR>
-
-" Ignore these files when completing names
-set wildignore=.svn,CVS,.git,*.o,*.a,*.class,*.mo,*.la,*.so,*.obj,*.swp,*.jpg,*.png,*.xpm,*.gif,*.pdf,*.bak,*.beam,*.aux
-
-" Enable persistent undo
-set undodir=~/.vim/undo
-set undofile
-set undolevels=1000
-set undoreload=10000
+command! -nargs=1 Psql call s:Psql(<f-args>)

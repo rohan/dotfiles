@@ -115,7 +115,7 @@ alert () {
 
   command -v terminal-notifier >/dev/null 2>&1 || { echo >&2 "I require
   terminal-notifier but it's not installed.  Aborting."; return; }
-  
+
   $@ && terminal-notifier -title "Terminal" -message "Task $1 has completed execution." ||
     terminal-notifier -title "Terminal" -message "Error: task $1 has aborted."
 }
@@ -158,3 +158,34 @@ alias tex='latexrc'
 export GOPATH=~/src/go
 alias config='/usr/bin/git --git-dir=/Users/rohan/.cfg/ --work-tree=/Users/rohan'
 alias config='/usr/bin/git --git-dir=/Users/rohan/.cfg/ --work-tree=/Users/rohan'
+source ~/.git-completion.bash
+
+_git_checkout ()
+{
+	__git_has_doubledash && return
+
+	case "$cur" in
+	--conflict=*)
+		__gitcomp "diff3 merge" "" "${cur##--conflict=}"
+		;;
+	--*)
+		__gitcomp_builtin checkout "--no-track --no-recurse-submodules"
+		;;
+	*)
+		# check if --track, --no-track, or --no-guess was specified
+		# if so, disable DWIM mode
+		local flags="--track --no-track --no-guess" track_opt="--track"
+		if [ "$GIT_COMPLETION_CHECKOUT_NO_GUESS" = "1" ] ||
+		   [ -n "$(__git_find_on_cmdline "$flags")" ]; then
+			track_opt=''
+		fi
+    if [ "$command" = "checkout-remote" ]; then
+      __git_complete_refs $track_opt
+    else
+      __gitcomp_direct "$(__git_heads "" "$cur" " ")"
+    fi
+		;;
+	esac
+}
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

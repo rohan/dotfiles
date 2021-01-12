@@ -1,13 +1,14 @@
 [[ -s ~/.bashrc ]] && source ~/.bashrc
 
-export PATH=/Users/Rohan/Library/Haskell/bin:$PATH:/Users/Rohan/Documents/CS345H/bin:/Applications/Eclipse.app/Contents/Eclipse/
-export ECLIPSE_HOME=/Applications/Eclipse.app/Contents/Eclipse/
-
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
-
-#THIS MUST BE AT THE END OF THE FILE FOR GVM TO WORK!!!
-[[ -s "/Users/Rohan/.gvm/bin/gvm-init.sh" ]] && source "/Users/Rohan/.gvm/bin/gvm-init.sh"
+export PATH=/usr/local/sbin:$PATH:/Users/rohanramchand/src/arcanist/bin
 
 if [ -f $(brew --prefix)/etc/bash_completion ]; then
   . $(brew --prefix)/etc/bash_completion
 fi
+export PATH="/usr/local/opt/protobuf@3.1/bin:$PATH"
+
+complete -W "\`grep -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' Makefile | sed 's/[^a-zA-Z0-9_.-]*$//'\`" make
+eval "$(pyenv init -)"
+
+
+export PATH="$HOME/.cargo/bin:$PATH"

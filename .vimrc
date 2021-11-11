@@ -18,7 +18,7 @@ Plug 'k0kubun/vim-open-github'
 Plug 'mtth/scratch.vim'
 
 " Asynchronous syntax checking
-Plug 'w0rp/ale'
+" Plug 'w0rp/ale'
 
 " Editorconfig support
 Plug 'editorconfig/editorconfig-vim'
@@ -79,6 +79,8 @@ endif
 
 " Turn on syntax highlighting
 syntax on
+
+set backspace=indent,eol,start  " more powerful backspacing
 
 if !empty(glob('~/.vim/plugged/lightline.vim'))
   " Lightline config

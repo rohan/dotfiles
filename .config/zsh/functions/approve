@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+set -o pipefail
 local message="c'est bon"
 
 if [ "$#" -eq 0 ]; then
@@ -30,9 +31,9 @@ local old_pwd=$(pwd)
 cd ~/src/all-the-things/
 
 echo "Fetching tags..."
-git fetch --tags > /dev/null 2>&1
+git fetch --tags
 echo "Checking out $tag"
-git checkout $tag > /dev/null 2>&1
+git checkout $tag
 
 echo "Tagging HEAD as $tag.approved with message \"$message\""
 git tag -s $tag.approved -m $message

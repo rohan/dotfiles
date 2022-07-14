@@ -5,10 +5,11 @@
 	required = true
 [user]
 	name = Rohan Ramchand
-	email = rohan.ramchand@affirm.com
-	signingkey = 5E7F37E47C59B85D
+	email = rohan@neon.xyz
+	signingkey = 34BDEAC5E583DA76
 [push]
 	default = simple
+	autoSetupRemote = true
 [alias]
   base = "!git show-branch | sed 's/].*//' | grep '*' | grep -v \"$(git rev-parse --abbrev-ref HEAD)\" | head -n1 | sed 's/^.*\\[//' | sed 's/[\\^~].*//'"
   parents = "!sh -c \"while [ $(git rev-parse --abbrev-ref HEAD) != \"master\" ]; do parent=$(git base); echo $parent; git checkout $parent; done\""
@@ -22,3 +23,9 @@
 	branch = false
 	show = false
 	diff = false
+[init]
+	defaultBranch = main
+[commit]
+	gpgsign = true
+[gpg]
+	program = gpg

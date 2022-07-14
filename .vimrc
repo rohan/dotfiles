@@ -26,6 +26,18 @@ Plug 'editorconfig/editorconfig-vim'
 " Salt file syntax support
 Plug 'saltstack/salt-vim'
 
+" JS
+Plug 'pangloss/vim-javascript'
+
+" TS
+Plug 'leafgarland/typescript-vim'
+
+" JSX
+Plug 'maxmellon/vim-jsx-pretty'
+
+" TSX
+Plug 'peitalin/vim-jsx-typescript'
+
 " Comment a line with gcc (and other stuff)
 Plug 'tpope/vim-commentary'
 
@@ -36,7 +48,7 @@ Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-fugitive'
 
 " Homebrew fzf
-Plug '/usr/local/opt/fzf'
+Plug '/opt/homebrew/opt/fzf'
 
 " Enable fzf support
 Plug 'junegunn/fzf.vim'
@@ -67,6 +79,12 @@ Plug 'rust-lang/rust.vim'
 
 " protobufs
 Plug 'uarun/vim-protobuf'
+
+" prisma
+Plug 'pantharshit00/vim-prisma'
+
+" toml
+Plug 'cespare/vim-toml'
 
 call plug#end()
 
@@ -331,6 +349,8 @@ set scrolloff=1
 " Use good mouse behavior
 set mouse=a
 
+set re=0
+
 " Move lines up and down
 nnoremap - ddp
 nnoremap _ ddkP
@@ -393,3 +413,8 @@ function s:Psql(svc)
 endfunction
 
 command! -nargs=1 Psql call s:Psql(<f-args>)
+
+let g:rustfmt_autosave = 1
+
+autocmd FileType ts,js autocmd BufWritePre * silent "!yarn format" <afile>
+let g:typescript_compiler_binary = 'npx tsc'

@@ -40,9 +40,7 @@ fi
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 eval "$(pyenv init --no-rehash -)"
-export PATH="/usr/local/opt/openssl/bin:$PATH"
-export PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
-export PATH="$(yarn global bin):$PATH"
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
 export GOPATH=$HOME/src/go # don't forget to change your path correctly!
 export GOROOT=/usr/local/opt/go/libexec
@@ -50,8 +48,6 @@ export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
 
 export LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/bzip2/lib"
 export CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/bzip2/include"
-export PATH="/usr/local/opt/openssl@1.0.2t/bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-alias config='/usr/bin/git --git-dir=/Users/rohanramchand/.cfg/ --work-tree=/Users/rohanramchand'

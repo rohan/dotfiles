@@ -6,7 +6,7 @@
 [user]
 	name = Rohan Ramchand
 	email = rohan@neon.xyz
-	signingkey = 34BDEAC5E583DA76
+	signingkey = E322B76503DB1BBB
 [push]
 	default = simple
 	autoSetupRemote = true

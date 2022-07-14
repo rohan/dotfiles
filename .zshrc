@@ -5,14 +5,6 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# source all configs
-for config in ~/.config/zsh/configs/*; do
-  [[ -f "$config" ]] && source "$config"
-done
-
-# source all plugins
-source ~/.config/zsh/plugins/plugins.zsh
-
 autoload -U colors && colors
 
 # Use menu for autocompletion when number of items >= 2
@@ -48,6 +40,14 @@ export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
 
 export LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/bzip2/lib"
 export CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/bzip2/include"
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# source all configs
+source ~/.config/zsh/configs/configs.zsh
+
+# source all plugins
+source ~/.config/zsh/plugins/plugins.zsh
+

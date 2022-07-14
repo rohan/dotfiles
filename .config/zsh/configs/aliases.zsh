@@ -15,4 +15,4 @@ function vim-fzf {
 }
 
 bindkey -s '^O' 'vim-fzf^M'
-alias config='/opt/homebrew/bin/git --git-dir=/Users/rohanramchand/.cfg/ --work-tree=/Users/rohanramchand'
+alias config='/opt/homebrew/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
